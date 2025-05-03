@@ -1,10 +1,7 @@
-import tkinter as tk
-from tkinter import messagebox
 import random
-import copy
 
 class TicTacToeAI:
-    def __init__(self, difficulty='Easy'):
+    def __init__(self, difficulty='Medium'):
         self.difficulty = difficulty
 
     def get_move(self, board, player):
@@ -16,13 +13,13 @@ class TicTacToeAI:
             return self.minimax_move(board, player)
 
     def random_move(self, board):
-        available = [i for i, spot in enumerate(board) if spot == '']
+        available = [i for i, spot in enumerate(board) if spot == ' ']
         return random.choice(available)
 
     def medium_move(self, board, player):
         opponent = 'O' if player == 'X' else 'X'
         for i in range(9):
-            if board[i] == '':
+            if board[i] == ' ':
                 board_copy = board[:]
                 board_copy[i] = player
                 if self.check_win(board_copy, player):
@@ -36,10 +33,10 @@ class TicTacToeAI:
         best_score = -float('inf')
         best_move = None
         for i in range(9):
-            if board[i] == '':
+            if board[i] == ' ':
                 board[i] = player
                 score = self.minimax(board, False, player)
-                board[i] = ''
+                board[i] = ' '
                 if score > best_score:
                     best_score = score
                     best_move = i
@@ -51,25 +48,25 @@ class TicTacToeAI:
             return 1
         elif self.check_win(board, opponent):
             return -1
-        elif '' not in board:
+        elif ' ' not in board:
             return 0
 
         if is_maximizing:
             best_score = -float('inf')
             for i in range(9):
-                if board[i] == '':
+                if board[i] == ' ':
                     board[i] = player
                     score = self.minimax(board, False, player)
-                    board[i] = ''
+                    board[i] = ' '
                     best_score = max(score, best_score)
             return best_score
         else:
             best_score = float('inf')
             for i in range(9):
-                if board[i] == '':
+                if board[i] == ' ':
                     board[i] = opponent
                     score = self.minimax(board, True, player)
-                    board[i] = ''
+                    board[i] = ' '
                     best_score = min(score, best_score)
             return best_score
 
@@ -81,24 +78,54 @@ class TicTacToeAI:
         ]
         return any(all(board[i] == player for i in combo) for combo in win_combos)
 
-class TicTacToeGame:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Fancy Tic Tac Toe with AI")
-        self.board = [''] * 9
-        self.current_player = 'X'
-        self.buttons = []
-        self.ai = None
+def print_board(board):
+    print("\n")
+    for i in range(0, 9, 3):
+        print(f" {board[i]} | {board[i+1]} | {board[i+2]} ")
+        if i < 6:
+            print("---|---|---")
+    print("\n")
 
-        self.difficulty = tk.StringVar(value="Medium")
+def get_player_move(board):
+    while True:
+        try:
+            move = int(input("Enter your move (1-9): ")) - 1
+            if 0 <= move <= 8 and board[move] == ' ':
+                return move
+            else:
+                print("Invalid move. Try again.")
+        except ValueError:
+            print("Please enter a number between 1 and 9.")
 
-        self.create_widgets()
+def play_game():
+    board = [' '] * 9
+    player = 'X'
+    ai_player = 'O'
 
-    def create_widgets(self):
-        difficulty_frame = tk.Frame(self.root)
-        tk.Label(difficulty_frame, text="Select Difficulty:").pack(side=tk.LEFT)
-        for level in ['Easy', 'Medium', 'Hard']:
-            tk.Radiobutton(
-                difficulty_frame, text=level, variable=self.difficulty, value=level,
-                command=self.set_difficulty
-            ).pack(side=tk.LEFT)
+    print("Welcome to Console Tic Tac Toe!")
+    difficulty = input("Choose AI difficulty (Easy, Medium, Hard): ").capitalize()
+    ai = TicTacToeAI(difficulty)
+
+    print_board([str(i+1) for i in range(9)])
+
+    while True:
+        if player == 'X':
+            move = get_player_move(board)
+        else:
+            print("AI is thinking...")
+            move = ai.get_move(board, ai_player)
+
+        board[move] = player
+        print_board(board)
+
+        if ai.check_win(board, player):
+            print(f"{'You' if player == 'X' else 'AI'} wins!")
+            break
+        elif ' ' not in board:
+            print("It's a draw!")
+            break
+
+        player = 'O' if player == 'X' else 'X'
+
+if __name__ == "__main__":
+    play_game()
